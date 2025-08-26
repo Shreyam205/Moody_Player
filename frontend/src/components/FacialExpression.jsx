@@ -4,7 +4,6 @@ import * as faceapi from 'face-api.js';
 const FacialExpression = () => {
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
-  const [expression, setExpression] = useState('');
 
   // Load models
   useEffect(() => {
@@ -16,8 +15,8 @@ const FacialExpression = () => {
 
     const startVideo = () => {
       navigator.mediaDevices
-        .getUserMedia({ video: {} })
-        .then(stream => {
+        .getUserMedia({ video: true })
+        .then((stream) => {
           if (videoRef.current) {
             videoRef.current.srcObject = stream;
           }
@@ -25,40 +24,33 @@ const FacialExpression = () => {
         .catch(err => console.error('Error accessing webcam:', err));
     };
 
+    const handleVideoPlay = () => {
+      setInterval(async () => {
+        const detections = await faceapi
+          .detectAllFaces(videoRef.current, new faceapi.TinyFaceDetectorOptions()).withFaceExpressions();
+
+        const canvas = canvasRef.current;
+        const displaySize = {
+          width: videoRef.current.videoWidth,
+          height: videoRef.current.videoHeight
+        };
+        faceapi.matchDimensions(canvas, displaySize);
+
+        const resized = faceapi.resizeResults(detections, displaySize);
+
+        canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
+        faceapi.draw.drawDetections(canvas, resized)
+        faceapi.draw.drawFaceExpressions(canvas, resized)
+
+        // console.log(expression);
+
+      }, 500);
+    };
     loadModels().then(startVideo);
+
+    videoRef.current && videoRef.current.addEventListener('play', handleVideoPlay);
+
   }, []);
-
-  const onPlay = async () => {
-    setInterval(async () => {
-      if (!videoRef.current || !canvasRef.current) return;
-
-      const options = new faceapi.TinyFaceDetectorOptions();
-      const result = await faceapi
-        .detectSingleFace(videoRef.current, options)
-        .withFaceExpressions();
-
-      const dims = faceapi.matchDimensions(canvasRef.current, {
-        width: videoRef.current.videoWidth,
-        height: videoRef.current.videoHeight
-      });
-
-      canvasRef.current
-        .getContext('2d')
-        .clearRect(0, 0, dims.width, dims.height);
-
-      if (result) {
-        const resized = faceapi.resizeResults(result, dims);
-        faceapi.draw.drawDetections(canvasRef.current, resized);
-        faceapi.draw.drawFaceExpressions(canvasRef.current, resized);
-
-        const expressions = result.expressions;
-        const maxExp = Object.entries(expressions).reduce((a, b) =>
-          a[1] > b[1] ? a : b
-        );
-        setExpression(maxExp[0]);
-      }
-    }, 500);
-  };
 
   return (
     <div style={{ position: 'relative' }}>
@@ -66,18 +58,17 @@ const FacialExpression = () => {
         ref={videoRef}
         autoPlay
         muted
-        width="640"
-        height="480"
-        onPlay={onPlay}
+        width="720"
+        height="560"
         style={{ border: '1px solid #000' }}
       />
       <canvas
         ref={canvasRef}
-        width="640"
-        height="480"
+        width="720"
+        height="560"
         style={{ position: 'absolute', top: 0, left: 0 }}
       />
-      <h2>Detected Expression: {expression}</h2>
+      {/* <h2>Detected Expression: {expression}</h2> */}
     </div>
   );
 };
