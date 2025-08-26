@@ -35,7 +35,7 @@ const FacialExpression = () => {
 
     for (const expression of Object.keys(detections[0].expressions)) {
       if (detections[0].expressions[expression] > mostProbableExpression) {
-        mostProbableExpression = detections[0].expressions;
+        mostProbableExpression = detections[0].expressions[expression];
         expressionName = expression;
       }
     }
