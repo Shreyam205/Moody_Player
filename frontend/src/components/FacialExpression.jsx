@@ -75,7 +75,7 @@ const FacialExpression = () => {
   }, []);
 
   return (
-    <div className='flex flex-col gap-12'>
+    <div className='flex flex-col gap-5 lg:gap-10 w-[85%] lg:w-1/5'>
       <video
         ref={videoRef}
         autoPlay
@@ -84,7 +84,7 @@ const FacialExpression = () => {
         height="560"
         className='border-1 rounded-xl'
       />
-      <button className='bg-purple-950 text-xl rounded-lg p-5' onClick={detectMood}>Detect Mood</button>
+      <button className='bg-purple-950 text-xl cursor-pointer rounded-lg p-5' onClick={detectMood}>Detect Mood</button>
       {/* <h2>Detected Expression: {expression}</h2> */}
     </div>
   );
